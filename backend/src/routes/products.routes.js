@@ -21,4 +21,5 @@ router.post("/addProduct",authMiddleware, adminMiddleware, [
 router.delete("/:id",authMiddleware,adminMiddleware,deleteProduct);
 
 
+
 export default router;
