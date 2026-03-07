@@ -3,6 +3,9 @@ import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import {User} from "../models/index.js";
 import { ExpressValidator, validationResult } from "express-validator";
+import dotenv from "dotenv";
+dotenv.config();
+import authMiddleware from "../middleware/auth.middleware.js";
 import redis from "../config/redis.js";
 
 
@@ -12,11 +15,17 @@ const register = async(req, res) => {
         if(!errors.isEmpty()) return res.status(400).json({
             errors: errors.array()
         })
-        const {name,email,password} = req.body;
+        const {name,email,password,role} = req.body;
         const existingUser =await User.findOne({email});
         if(existingUser) return res.status(400).json({
             message: "User already exists"
         })
+        if(role && role === "admin"){
+            const admin = await User.findOne({role:"admin"});
+            if(admin) return res.status(400).json({
+                message: "Admin already exists"
+            })
+        }
         const user = await User.create({
             email,
             name,
@@ -75,6 +84,10 @@ const login = async(req, res) => {
         const user = await User.findOne({email}).select("+password");
         if(!user) return res.status(400).json({
             message: "Invalid email"
+        })
+        const alreadyLogin = await redis.get(`refreshToken:${user._id}`);
+        if(alreadyLogin) return res.status(400).json({
+            message: "User already logged in"
         })
         if(! await user.comparePassword(password)) return res.status(400).json({
             message: "Invalid password"
@@ -155,7 +168,8 @@ const refreshToken = async(req,res) => {
         if(!user) return res.status(401).json({
             message: "Unauthorized"
         })
-        res.cookie("accessToken", user.generateAccessToken(), {
+        const accessToken = user.generateAccessToken();
+        res.cookie("accessToken", accessToken, {
             httpOnly:true,
             maxAge: 15*60*1000,
             secure:true,
@@ -173,5 +187,23 @@ const refreshToken = async(req,res) => {
     }
 }
 
-export {register, login, logout, refreshToken};
+const getProfile = async(req,res) => {
+    try{
+        const user = req.user;
+        if(!user) return res.status(401).json({
+            message: "Unauthorized"
+        })
+        return res.status(200).json({
+            user
+        })
+    }
+    catch(error){
+        console.log(error);
+        return res.status(500).json({
+            message: "Something went wrong"
+        })
+    }
+}
+
+export {register, login, logout, refreshToken, getProfile};
 
