@@ -1,5 +1,5 @@
 import express from 'express';
-import {register, login, logout } from "../controllers/auth.controllers.js";
+import {register, login, logout, refreshToken} from "../controllers/auth.controllers.js";
 import {body} from "express-validator";
 
 const router = express.Router();
@@ -15,6 +15,7 @@ router.post("/login",[
     body("password").notEmpty().withMessage("Password is required")
 ], login);
 router.post("/logout", logout);
+router.post("/refreshToken", refreshToken);
 
 
 export default router;

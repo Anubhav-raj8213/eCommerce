@@ -137,4 +137,41 @@ const logout = async(req, res) => {
     }
 }
 
-export {register, login, logout};
+const refreshToken = async(req,res) => {
+    try{
+        const refreshToken = req.cookies.refreshToken;
+        if(!refreshToken) return res.status(401).json({
+            message: "Unauthorized"
+        })
+        const decoded = jwt.verify(refreshToken,process.env.JWT_SECRET);
+        if(!decoded) return res.status(401).json({
+            message: "Unauthorized"
+        })
+        const stored = await redis.get(`refreshToken:${decoded.userId}`);
+        if(!stored || stored !== refreshToken) return res.status(401).json({
+            message: "Unauthorized"
+        })
+        const user = await User.findById(decoded.userId);
+        if(!user) return res.status(401).json({
+            message: "Unauthorized"
+        })
+        res.cookie("accessToken", user.generateAccessToken(), {
+            httpOnly:true,
+            maxAge: 15*60*1000,
+            secure:true,
+            sameSite: "strict"
+        })
+        return res.status(200).json({
+            message: "Token refreshed successfully"
+        })
+    }
+    catch(error){
+        console.log(error);
+        return res.status(500).json({
+            message: "Something went wrong"
+        })
+    }
+}
+
+export {register, login, logout, refreshToken};
+
