@@ -57,6 +57,8 @@ Before running the project, ensure you have the following installed:
 | POST   | `/register` | Register a new user |
 | POST   | `/login`    | Login an existing user |
 | POST   | `/logout`   | Logout user (Clears cookies & Redis cache) |
+| POST   | `/refreshToken` | Refresh access token using refresh token |
+| GET    | `/profile`  | Get current user profile |
 
 #### 1. Register
 - **URL:** `/api/v1/auth/register`
@@ -84,3 +86,45 @@ Before running the project, ensure you have the following installed:
 #### 3. Logout
 - **URL:** `/api/v1/auth/logout`
 - **Behavior:** Requires a valid `refreshToken` cookie. Removes the token from Redis and clears client cookies.
+
+### Products
+
+**Base URL:** `/api/v1/products`
+
+| Method | Endpoint       | Description | Access |
+| :----- | :------------- | :---------- | :----- |
+| GET    | `/`            | Get all products | Admin Only |
+| GET    | `/featured`    | Get featured products | Public |
+| POST   | `/addProduct`  | Add a new product | Admin Only |
+| DELETE | `/:id`         | Delete a product | Admin Only |
+
+#### 1. Get All Products
+- **URL:** `/api/v1/products/`
+- **Access:** Admin
+- **Behavior:** Returns a list of all products in the database.
+
+#### 2. Get Featured Products
+- **URL:** `/api/v1/products/featured`
+- **Access:** Public
+- **Behavior:** Returns products marked as featured. Uses Redis caching for performance.
+
+#### 3. Add Product
+- **URL:** `/api/v1/products/addProduct`
+- **Access:** Admin
+- **Body:**
+  ```json
+  {
+    "name": "Product Name",
+    "desc": "Product Description",
+    "price": 100,
+    "category": "Electronics",
+    "quantity": 10,
+    "image": "base64_string_or_url"
+  }
+  ```
+- **Behavior:** Uploads image to Cloudinary and saves product details to MongoDB.
+
+#### 4. Delete Product
+- **URL:** `/api/v1/products/:id`
+- **Access:** Admin
+- **Behavior:** Deletes the product from the database and removes its image from Cloudinary.
