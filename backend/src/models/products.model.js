@@ -34,6 +34,11 @@ const productSchema = new mongoose.Schema({
     
 },{timestamps:true})
 
+productSchema.methods.toggleFeatured = async function(){
+    this.isFeatured = !this.isFeatured;
+    return await this.save();
+}
+
 const Product = mongoose.model("Product", productSchema);
 
 export default Product;

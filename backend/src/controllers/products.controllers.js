@@ -100,11 +100,76 @@ const deleteProduct = async(req,res) => {
     }
 }
 
+const getRecommendations = async(req,res) => {
+    try {
+        const products = await Product.aggregate([
+            {
+                $sample: { size: 5 }
+            },
+            {
+                $project: { 
+                    name: 1, 
+                    desc: 1, 
+                    price: 1, 
+                    image: 1, 
+                    _id: 1
+                }
+            }
+        ]);
+        res.json(products);
+    } catch (error) {
+        console.error("Error getting recommendations:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
 
+
+const getProductsByCategory = async(req,res) => {
+    try {
+        const category = req.params.category;
+        const products = await Product.find({category});
+        if(!products) return res.status(404).json({
+            message: "No products found"
+        })
+    } catch (error) {
+        console.log("Error getting products by category:", error.message);
+        return res.status(500).json({
+            message: "Internal Server Error"
+        })
+    }
+}
+
+
+const toggleFeatured = async(req,res) => {
+    try {
+        const product = await Product.findById(req.params.id);
+        product.toggleFeatured();
+        await updateFeaturedProductsCache();
+        return res.status(200).json({
+            message: "Product toggled successfully"
+        })
+    } catch (error) {
+        console.error("Error toggling featured product:", error.message);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+const updateFeaturedProductsCache = async function(){
+        try {
+            const featuredProducts = await Product.find({isFeatured:true}).lean();
+            await redis.set(`featuredProducts`, JSON.stringify(featuredProducts));
+        } catch (error) {
+            console.error("Error updating featured products cache:", error.message);
+            throw error;
+        }
+}
 
 export { 
     getAllProducts,
     getFeaturedProducts,
     addProduct,
-    deleteProduct
+    deleteProduct,
+    getRecommendations,
+    getProductsByCategory,
+    toggleFeatured
  };

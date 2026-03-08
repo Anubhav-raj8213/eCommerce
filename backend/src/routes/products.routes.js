@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { getAllProducts, getFeaturedProducts, addProduct, deleteProduct } from '../controllers/products.controllers.js';
+import { getAllProducts, getFeaturedProducts, addProduct, deleteProduct, getRecommendations, getProductsByCategory, toggleFeatured } from '../controllers/products.controllers.js';
 import {authMiddleware , adminMiddleware} from "../middleware/index.js";
 dotenv.config();
 import {body} from "express-validator";
@@ -19,6 +19,9 @@ router.post("/addProduct",authMiddleware, adminMiddleware, [
     body("image").notEmpty().withMessage("Image is required"),
 ], addProduct);
 router.delete("/:id",authMiddleware,adminMiddleware,deleteProduct);
+router.get("/recommendations", getRecommendations);
+router.get("/category/:category", getProductsByCategory);
+router.patch("/:id",authMiddleware,adminMiddleware,toggleFeatured);
 
 
 

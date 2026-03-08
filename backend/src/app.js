@@ -4,7 +4,7 @@ dotenv.config();
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import connectDB from './config/db.js';
-import {authRoutes, productRoutes} from './routes/index.js';
+import {authRoutes, productRoutes, cartRoutes} from './routes/index.js';
 
 const app = express();
 
@@ -16,5 +16,6 @@ app.use(cookieParser());
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/cart", cartRouutes)
 
 export default app;
