@@ -81,7 +81,7 @@ const deleteProduct = async(req,res) => {
         if(!product) return res.status(404).json({
             message: "Product not found"
         })
-        const publicid = product.image.split("/")-pop()-split("*")[0];
+        const publicid = product.image.split("/").pop().split("*")[0];
         try {
             await cloudinary.uploader.destroy(publicid);
             console.log("Image deleted from cloudinary");
@@ -107,7 +107,7 @@ const getRecommendations = async(req,res) => {
                 $sample: { size: 5 }
             },
             {
-                $project: { 
+                  $project: { 
                     name: 1, 
                     desc: 1, 
                     price: 1, 
@@ -116,7 +116,7 @@ const getRecommendations = async(req,res) => {
                 }
             }
         ]);
-        res.json(products);
+        return res.json(products);
     } catch (error) {
         console.error("Error getting recommendations:", error.message);
         res.status(500).json({ message: "Internal Server Error" });
@@ -130,6 +130,9 @@ const getProductsByCategory = async(req,res) => {
         const products = await Product.find({category});
         if(!products) return res.status(404).json({
             message: "No products found"
+        })
+        return res.status(200).json({
+            products
         })
     } catch (error) {
         console.log("Error getting products by category:", error.message);
